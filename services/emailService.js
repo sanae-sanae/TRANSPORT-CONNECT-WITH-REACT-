@@ -1,7 +1,5 @@
 import nodemailer from 'nodemailer';
 import { logger } from '../utils/logger.js';
-
-// Reusable transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
     service: 'gmail',
@@ -16,8 +14,6 @@ const createTransporter = () => {
 };
 
 const transporter = createTransporter();
-
-// Enhanced send email with retry
 export const sendEmailWithRetry = async (options, retries = 3) => {
   for (let i = 0; i < retries; i++) {
     try {
@@ -31,14 +27,10 @@ export const sendEmailWithRetry = async (options, retries = 3) => {
         logger.error(`Failed to send email after ${retries} attempts`);
         return false;
       }
-      
-      // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 };
-
-// Template-based email sender
 export const sendTemplatedEmail = async (to, templateName, data) => {
   let subject, html;
   
