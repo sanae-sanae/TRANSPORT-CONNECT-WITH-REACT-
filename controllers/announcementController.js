@@ -2,8 +2,6 @@ import Announcement from '../models/Announcement.js';
 import Request from '../models/Request.js';
 import User from '../models/User.js';
 import { sendNotificationEmail } from '../config/emailConfig.js';
-
-// Create announcement
 export const createAnnouncement = async (req, res, next) => {
   try {
     const { 
@@ -33,8 +31,6 @@ export const createAnnouncement = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get announcements with filters
 export const getAnnouncements = async (req, res, next) => {
   try {
     const { departure, destination, minDate, maxDate, cargoType } = req.query;
@@ -59,8 +55,6 @@ export const getAnnouncements = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get announcement by ID
 export const getAnnouncementById = async (req, res, next) => {
   try {
     const announcement = await Announcement.findById(req.params.id)
@@ -83,8 +77,6 @@ export const getAnnouncementById = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get driver's announcements
 export const getMyAnnouncements = async (req, res, next) => {
   try {
     const announcements = await Announcement.find({ driver: req.user.id })
@@ -102,8 +94,6 @@ export const getMyAnnouncements = async (req, res, next) => {
     next(err);
   }
 };
-
-// Update announcement status
 export const updateAnnouncementStatus = async (req, res, next) => {
   try {
     const { id } = req.params;

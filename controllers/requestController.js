@@ -2,8 +2,6 @@ import Request from '../models/Request.js';
 import Announcement from '../models/Announcement.js';
 import User from '../models/User.js';
 import { sendNotificationEmail } from '../config/emailConfig.js';
-
-// Create request
 export const createRequest = async (req, res, next) => {
   try {
     const { announcementId, packageDetails } = req.body;
@@ -14,8 +12,6 @@ export const createRequest = async (req, res, next) => {
     if (!announcement) {
       return res.status(404).json({ message: 'Announcement not found' });
     }
-
-    // Check capacity
     if (packageDetails.weight > announcement.availableCapacity) {
       return res.status(400).json({ 
         message: 'Package weight exceeds available capacity'
@@ -29,12 +25,8 @@ export const createRequest = async (req, res, next) => {
     });
 
     await request.save();
-    
-    // Add request to announcement
     announcement.requests.push(request._id);
     await announcement.save();
-
-    // Notify driver
     if (announcement.driver.email) {
       await sendNotificationEmail(
         announcement.driver,
@@ -48,8 +40,6 @@ export const createRequest = async (req, res, next) => {
     next(err);
   }
 };
-
-// Update request status
 export const updateRequestStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -65,8 +55,6 @@ export const updateRequestStatus = async (req, res, next) => {
     if (!request) {
       return res.status(404).json({ message: 'Request not found' });
     }
-
-    // Notify shipper
     if (request.shipper.email) {
       const statusMessage = status === 'accepted' 
         ? 'a été acceptée' 
@@ -86,8 +74,6 @@ export const updateRequestStatus = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get user requests
 export const getUserRequests = async (req, res, next) => {
   try {
     const requests = await Request.find({ shipper: req.user.id })

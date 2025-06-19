@@ -12,23 +12,15 @@ const generateToken = (user) => {
     { expiresIn: '7d' }
   );
 };
-
-// Register user
 export const register = async (req, res, next) => {
   try {
     const { firstName, lastName, email, phone, password, role } = req.body;
-    
-    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
-
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
     const user = await User.create({
       firstName,
       lastName,
@@ -37,10 +29,8 @@ export const register = async (req, res, next) => {
       password: hashedPassword,
       role,
       verificationOTP: generateOTP(),
-      otpExpiry: Date.now() + 3600000 // 1 hour
+      otpExpiry: Date.now() + 3600000 
     });
-
-    // Send verification email
     await sendEmail(
       email,
       'Vérification de votre compte TransportLogistics',
@@ -55,8 +45,6 @@ export const register = async (req, res, next) => {
     next(err);
   }
 };
-
-// Verify email
 export const verifyEmail = async (req, res, next) => {
   try {
     const { userId, otp } = req.body;
@@ -84,8 +72,6 @@ export const verifyEmail = async (req, res, next) => {
     next(err);
   }
 };
-
-// Login user
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -94,29 +80,21 @@ export const login = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    // For OAuth users without password
     if (user.method !== 'local') {
       return res.status(401).json({ 
         message: `Please sign in with ${user.method} instead` 
       });
     }
-
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    // Check if verified
     if (!user.isVerified) {
       return res.status(403).json({ 
         message: 'Account not verified. Please verify your email.',
         userId: user._id
       });
     }
-
-    // Generate JWT
     const token = generateToken(user);
 
     res.json({ 
@@ -134,8 +112,6 @@ export const login = async (req, res, next) => {
     next(err);
   }
 };
-
-// Google OAuth
 export const googleAuth = passport.authenticate('google', { 
   scope: ['profile', 'email'],
   session: false 
@@ -151,8 +127,6 @@ export const googleCallback = (req, res, next) => {
     res.redirect(`${process.env.CLIENT_URL}/oauth?token=${token}&userId=${user._id}`);
   })(req, res, next);
 };
-
-// GitHub OAuth
 export const githubAuth = passport.authenticate('github', { 
   scope: ['user:email'],
   session: false 
@@ -168,8 +142,6 @@ export const githubCallback = (req, res, next) => {
     res.redirect(`${process.env.CLIENT_URL}/oauth?token=${token}&userId=${user._id}`);
   })(req, res, next);
 };
-
-// Forgot password
 export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -180,7 +152,7 @@ export const forgotPassword = async (req, res, next) => {
     }
     
     user.resetPasswordToken = generateOTP();
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetPasswordExpires = Date.now() + 3600000; 
     await user.save();
     
     await sendEmail(
@@ -194,8 +166,6 @@ export const forgotPassword = async (req, res, next) => {
     next(err);
   }
 };
-
-// Reset password
 export const resetPassword = async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;

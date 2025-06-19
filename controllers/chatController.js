@@ -1,13 +1,9 @@
 import Message from '../models/Message.js';
 import Announcement from '../models/Announcement.js';
 import User from '../models/User.js';
-
-// Save message
 export const saveMessage = async (io, socket, data) => {
   try {
     const { announcementId, receiverId, content } = data;
-    
-    // Validate participants
     const announcement = await Announcement.findById(announcementId);
     if (!announcement) {
       return socket.emit('error', 'Announcement not found');
@@ -23,8 +19,6 @@ export const saveMessage = async (io, socket, data) => {
         !validParticipants.includes(receiverId)) {
       return socket.emit('error', 'Unauthorized chat participant');
     }
-    
-    // Save message
     const message = new Message({
       announcement: announcementId,
       sender: socket.user.id,
@@ -33,27 +27,19 @@ export const saveMessage = async (io, socket, data) => {
     });
 
     const savedMessage = await message.save();
-    
-    // Populate sender info
     const populatedMessage = await Message.populate(savedMessage, {
       path: 'sender',
       select: 'firstName lastName'
     });
-    
-    // Emit to participants
     io.to(announcementId).emit('newMessage', populatedMessage);
   } catch (err) {
     console.error('Error saving message:', err);
     socket.emit('error', 'Failed to send message');
   }
 };
-
-// Get chat history
 export const getChatHistory = async (req, res, next) => {
   try {
     const { announcementId } = req.params;
-    
-    // Validate access
     const announcement = await Announcement.findById(announcementId);
     if (!announcement) {
       return res.status(404).json({ message: 'Announcement not found' });
@@ -68,8 +54,6 @@ export const getChatHistory = async (req, res, next) => {
     if (!validParticipants.includes(req.user.id)) {
       return res.status(403).json({ message: 'Unauthorized access to chat' });
     }
-    
-    // Get messages
     const messages = await Message.find({ announcement: announcementId })
       .populate('sender', 'firstName lastName')
       .sort('createdAt');
@@ -79,8 +63,6 @@ export const getChatHistory = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get chat participants
 export const getChatParticipants = async (req, res, next) => {
   try {
     const { announcementId } = req.params;

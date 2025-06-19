@@ -2,8 +2,6 @@ import User from '../models/User.js';
 import Announcement from '../models/Announcement.js';
 import Request from '../models/Request.js';
 import Review from '../models/Review.js';
-
-// Get dashboard stats
 export const getDashboardStats = async (req, res, next) => {
   try {
     const [usersCount, driversCount, shippersCount, announcementsCount, requestsCount] = 
@@ -40,11 +38,8 @@ export const getDashboardStats = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get platform metrics
 export const getPlatformMetrics = async (req, res, next) => {
   try {
-    // Calculate acceptance rate
     const [acceptedRequests, totalRequests] = await Promise.all([
       Request.countDocuments({ status: 'accepted' }),
       Request.countDocuments()
@@ -53,8 +48,6 @@ export const getPlatformMetrics = async (req, res, next) => {
     const acceptanceRate = totalRequests > 0 
       ? (acceptedRequests / totalRequests * 100).toFixed(2)
       : 0;
-    
-    // Get user growth
     const userGrowth = await User.aggregate([
       {
         $group: {
@@ -65,8 +58,6 @@ export const getPlatformMetrics = async (req, res, next) => {
       { $sort: { _id: 1 } },
       { $limit: 30 }
     ]);
-    
-    // Get top rated drivers
     const topDrivers = await User.find({ role: 'driver', rating: { $gt: 0 } })
       .sort('-rating')
       .limit(5)
@@ -81,8 +72,6 @@ export const getPlatformMetrics = async (req, res, next) => {
     next(err);
   }
 };
-
-// Toggle user verification
 export const toggleUserVerification = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -100,8 +89,6 @@ export const toggleUserVerification = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get all users
 export const getAllUsers = async (req, res, next) => {
   try {
     const { role, verified, search } = req.query;
@@ -123,8 +110,6 @@ export const getAllUsers = async (req, res, next) => {
     next(err);
   }
 };
-
-// Delete announcement
 export const deleteAnnouncement = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -137,8 +122,6 @@ export const deleteAnnouncement = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get all announcements
 export const getAllAnnouncements = async (req, res, next) => {
   try {
     const { status, driver, destination } = req.query;

@@ -2,8 +2,6 @@ import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import { sendNotificationEmail } from '../config/emailConfig.js';
 import { generateOTP } from '../utils/helpers.js';
-
-// Get current user profile
 export const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id)
@@ -18,8 +16,6 @@ export const getMe = async (req, res, next) => {
     next(err);
   }
 };
-
-// Update user profile
 export const updateProfile = async (req, res, next) => {
   try {
     const { firstName, lastName, phone, currentPassword, newPassword } = req.body;
@@ -28,13 +24,9 @@ export const updateProfile = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    // Update basic info
     user.firstName = firstName || user.firstName;
     user.lastName = lastName || user.lastName;
     user.phone = phone || user.phone;
-
-    // Update password if provided
     if (currentPassword && newPassword) {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       if (!isMatch) {
@@ -46,8 +38,6 @@ export const updateProfile = async (req, res, next) => {
     }
 
     const updatedUser = await user.save();
-
-    // Exclude sensitive fields
     const userResponse = updatedUser.toObject();
     delete userResponse.password;
     delete userResponse.verificationOTP;
@@ -60,8 +50,6 @@ export const updateProfile = async (req, res, next) => {
     next(err);
   }
 };
-
-// Delete user account
 export const deleteAccount = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -69,12 +57,8 @@ export const deleteAccount = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    // Soft delete: mark as inactive instead of actually deleting
     user.active = false;
     await user.save();
-
-    // Notify user
     await sendNotificationEmail(
       user,
       'Votre compte a été désactivé',
@@ -86,8 +70,6 @@ export const deleteAccount = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get user by ID (admin only)
 export const getUserById = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id)
@@ -102,8 +84,6 @@ export const getUserById = async (req, res, next) => {
     next(err);
   }
 };
-
-// Verify user (admin only)
 export const verifyUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndUpdate(
@@ -115,8 +95,6 @@ export const verifyUser = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    // Notify user
     await sendNotificationEmail(
       user,
       'Votre compte est vérifié',
@@ -128,8 +106,6 @@ export const verifyUser = async (req, res, next) => {
     next(err);
   }
 };
-
-// Request verification badge
 export const requestVerification = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -137,29 +113,20 @@ export const requestVerification = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
-    // Already verified
     if (user.isVerified) {
       return res.status(400).json({ message: 'User already verified' });
     }
-    
-    // Already requested
     if (user.verificationRequested) {
       return res.status(400).json({ message: 'Verification already requested' });
     }
     
     user.verificationRequested = true;
     await user.save();
-    
-    // Notify admin (in a real app, this would trigger an admin notification)
-    
-    res.json({ message: 'Verification request submitted successfully' });
+     res.json({ message: 'Verification request submitted successfully' });
   } catch (err) {
     next(err);
   }
 };
-
-// Get driver statistics
 export const getDriverStats = async (req, res, next) => {
   try {
     const driver = await User.findById(req.user.id);
@@ -191,8 +158,6 @@ export const getDriverStats = async (req, res, next) => {
     next(err);
   }
 };
-
-// Get shipper statistics
 export const getShipperStats = async (req, res, next) => {
   try {
     const shipper = await User.findById(req.user.id);
